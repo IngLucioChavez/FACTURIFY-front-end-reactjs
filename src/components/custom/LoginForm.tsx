@@ -11,41 +11,17 @@ export const LoginForm = () => {
     const [isLoading, setIsLoading] = useState(false)
 
     const mutate = usePostLoginAction();
-    const navigation = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
 
         mutate.mutate({
-            user: email,
+            correo: email,
             password: password
         });
 
         setIsLoading(false)
-    }
-
-    if (mutate.isSuccess) {
-
-        if (mutate.data.status == 0) {
-            toast.error(`${mutate.data.message}`, {
-                description: "Intente de Nuevo",
-                duration: 2_000,
-                position: "top-center",
-                action: {
-                    label: "X",
-                    onClick: () => toast.dismiss()
-                }
-            });
-
-            setTimeout(() => {
-                navigation("/mensajes");
-            }, 2000);
-
-
-
-        }
-
     }
 
     return (

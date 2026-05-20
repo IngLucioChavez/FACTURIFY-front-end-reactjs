@@ -4,8 +4,6 @@ import { LoginForm } from "../components/custom/LoginForm"
 
 export const Login = () => {
 
-    // const mutateLogin = usePostLoginAction("aaa", "bbbb");
-
     return (
         <div className="relative min-h-screen bg-black overflow-hidden flex items-center justify-center">
             {/* Floating golden circles background */}
