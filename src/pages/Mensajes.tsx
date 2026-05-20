@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,34 +7,50 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { userContext } from "@/context/userContext";
+import { Navigate } from "react-router";
+import { GetMisConversaciones } from "@/actions/GetMisConversaciones";
 
 type User = {
-    id: string;
+    id: number;
     name: string;
 };
 
 type Message = {
     id: string;
-    from: string;
+    from: string | number;
     to: string;
     text: string;
     timestamp: number;
 };
-
-const mockUsers: User[] = [
-    { id: "1", name: "Ana" },
-    { id: "2", name: "Carlos" },
-    { id: "3", name: "María" },
-    { id: "4", name: "Luis" },
-];
 
 export const Mensajes = () => {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [text, setText] = useState("");
     const [open, setOpen] = useState(false);
+    const [usuariosConversaciones, setUsuariosConversaciones] = useState<User[]>([]);
 
-    const currentUserId = "me";
+    const { authStatus, user, token } = useContext(userContext);
+
+    if (authStatus !== "autenticado") {
+        return <Navigate to={"/"} />
+    }
+
+    useEffect(() => {
+        GetMisConversaciones(token ?? "")
+            .then((r) => {
+                const usuarios: User[] = r.conversaciones.map((con): User => {
+                    return {
+                        id: user?.id === con.usuario_1_id ? con.usuario_2_id : con.usuario_1_id,
+                        name: user?.id === con.usuario_1_id ? con.usuario2.nombre : con.usuario1.nombre
+                    }
+                })
+                setUsuariosConversaciones(usuarios);
+            });
+    }, [])
+
+    const currentUserId = user?.id ?? "me";
 
     const filteredMessages = useMemo(() => {
         if (!selectedUser) return [];
@@ -70,7 +86,7 @@ export const Mensajes = () => {
             </Card>
 
             <ScrollArea className="flex-1">
-                {mockUsers.map((user) => (
+                {usuariosConversaciones.map((user) => (
                     <div
                         key={user.id}
                         onClick={() => {

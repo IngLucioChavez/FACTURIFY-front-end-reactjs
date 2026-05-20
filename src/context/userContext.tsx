@@ -1,4 +1,4 @@
-import type { User } from "@/actions/PostDatosLogin"
+import { PostDatosLoginAction, type User } from "@/actions/PostDatosLogin"
 import { createContext, useState, type PropsWithChildren } from "react"
 
 interface UserContextProps {
@@ -6,7 +6,7 @@ interface UserContextProps {
     user: User | null,
     token: string | null,
 
-    login: (email: string, password: string) => boolean,
+    login: (email: string, password: string) => void,
     logout: () => void,
 }
 
@@ -19,7 +19,18 @@ export const UserContextProvider = ({ children }: PropsWithChildren) => {
     const [token, setToken] = useState<string | null>(null);
 
     const handleLogin = (email: string, password: string) => {
-        return true;
+
+        PostDatosLoginAction(email, password)
+            .then((r) => {
+                setAuthStatus("autenticado");
+                setUser(r.user);
+                setToken(r.token);
+            }).catch(() => {
+                setAuthStatus("no-autenticado");
+                setUser(null);
+                setToken(null);
+            });
+
     }
 
     const handleLogout = () => {

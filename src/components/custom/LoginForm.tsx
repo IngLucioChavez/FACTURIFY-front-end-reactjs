@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
-import { usePostLoginAction } from '@/Customhooks/usePostLoginAction'
-import { toast } from 'sonner'
+import { userContext } from '@/context/userContext'
 import { useNavigate } from 'react-router'
 
 export const LoginForm = () => {
@@ -10,19 +9,20 @@ export const LoginForm = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
-    const mutate = usePostLoginAction();
+    const { login, authStatus } = useContext(userContext);
+    const navigation = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsLoading(true)
 
-        mutate.mutate({
-            correo: email,
-            password: password
-        });
+        login(email, password);
 
         setIsLoading(false)
     }
+
+    if (authStatus === "autenticado")
+        navigation("/mensajes");
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">

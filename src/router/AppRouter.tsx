@@ -1,6 +1,6 @@
 import { Login } from "@/pages/Login";
 import { Mensajes } from "@/pages/Mensajes";
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 
 export const AppRouter = createBrowserRouter([
     {
@@ -13,6 +13,6 @@ export const AppRouter = createBrowserRouter([
     },
     {
         path: "*",
-        element: <h3>Not Found!</h3>,
+        element: <Navigate to={"/"} />,
     },
 ]);
