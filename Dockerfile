@@ -6,7 +6,7 @@ WORKDIR /var/www/app
 COPY package*.json ./
 
 # Instalar dependencias
-RUN npm install
+RUN npm i  && npm i @tailwindcss/vite
 
 # Copiar resto del proyecto
 COPY . .
