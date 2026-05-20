@@ -10,14 +10,16 @@ import { Menu } from "lucide-react";
 import { userContext } from "@/context/userContext";
 import { Navigate } from "react-router";
 import { GetMisConversaciones } from "@/actions/GetMisConversaciones";
+import { GetMensajesConversacion } from "@/actions/GetMensajesConversacion";
 
-type User = {
+type UserConversacion = {
     id: number;
     name: string;
+    idConversacion?: number;
 };
 
 type Message = {
-    id: string;
+    id: number;
     from: string | number;
     to: string;
     text: string;
@@ -25,11 +27,11 @@ type Message = {
 };
 
 export const Mensajes = () => {
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [selectedUserCon, setSelectedUserCon] = useState<UserConversacion | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [text, setText] = useState("");
     const [open, setOpen] = useState(false);
-    const [usuariosConversaciones, setUsuariosConversaciones] = useState<User[]>([]);
+    const [usuariosConversaciones, setUsuariosConversaciones] = useState<UserConversacion[]>([]);
 
     const { authStatus, user, token } = useContext(userContext);
 
@@ -40,40 +42,61 @@ export const Mensajes = () => {
     useEffect(() => {
         GetMisConversaciones(token ?? "")
             .then((r) => {
-                const usuarios: User[] = r.conversaciones.map((con): User => {
+                const usuarios: UserConversacion[] = r.conversaciones.map((con): UserConversacion => {
                     return {
                         id: user?.id === con.usuario_1_id ? con.usuario_2_id : con.usuario_1_id,
-                        name: user?.id === con.usuario_1_id ? con.usuario2.nombre : con.usuario1.nombre
+                        name: user?.id === con.usuario_1_id ? con.usuario2.nombre : con.usuario1.nombre,
+                        idConversacion: con.id
                     }
                 })
                 setUsuariosConversaciones(usuarios);
             });
     }, [])
 
-    const currentUserId = user?.id ?? "me";
+    useEffect(() => {
+        if (selectedUserCon === null)
+            return;
+
+        GetMensajesConversacion(selectedUserCon.idConversacion ?? 0, token ?? "")
+            .then((r) => {
+                const mensajes: Message[] = r.mensajes.map((mensaje): Message => {
+                    return {
+                        id: mensaje.id,
+                        from: mensaje.usuario.nombre,
+                        to: "me",
+                        text: mensaje.mensaje,
+                        timestamp: 0
+                    }
+                })
+                setMessages(mensajes);
+            });
+
+    }, [selectedUserCon])
+
+    const currentUserId = user?.id.toString();
 
     const filteredMessages = useMemo(() => {
-        if (!selectedUser) return [];
-        return messages.filter(
-            (m) =>
-                (m.from === currentUserId && m.to === selectedUser.id) ||
-                (m.from === selectedUser.id && m.to === currentUserId)
-        );
-    }, [messages, selectedUser]);
+        // if (!selectedUserCon) return [];
+        // return messages.filter(
+        //     (m) =>
+        //         (m.from === currentUserId && m.to === selectedUserCon.id) ||
+        //         (m.from === selectedUserCon.id && m.to === currentUserId)
+        // );
+    }, [messages, selectedUserCon]);
 
     const sendMessage = () => {
-        if (!selectedUser || !text.trim()) return;
+        // if (!selectedUserCon || !text.trim()) return;
 
-        const newMsg: Message = {
-            id: crypto.randomUUID(),
-            from: currentUserId,
-            to: selectedUser.id,
-            text,
-            timestamp: Date.now(),
-        };
+        // const newMsg: Message = {
+        //     id: crypto.randomUUID(),
+        //     from: currentUserId,
+        //     to: selectedUserCon.id,
+        //     text,
+        //     timestamp: Date.now(),
+        // };
 
-        setMessages((prev) => [...prev, newMsg]);
-        setText("");
+        // setMessages((prev) => [...prev, newMsg]);
+        // setText("");
     };
 
     const Sidebar = () => (
@@ -86,20 +109,20 @@ export const Mensajes = () => {
             </Card>
 
             <ScrollArea className="flex-1">
-                {usuariosConversaciones.map((user) => (
+                {usuariosConversaciones.map((userCon) => (
                     <div
-                        key={user.id}
+                        key={userCon.id}
                         onClick={() => {
-                            setSelectedUser(user);
+                            setSelectedUserCon(userCon);
                             setOpen(false);
                         }}
-                        className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-yellow-500/10 transition ${selectedUser?.id === user.id ? "bg-yellow-500/20" : ""
+                        className={`flex items-center gap-3 p-4 cursor-pointer hover:bg-yellow-500/10 transition ${selectedUserCon?.id === userCon.id ? "bg-yellow-500/20" : ""
                             }`}
                     >
                         <Avatar className="bg-yellow-500 text-black">
-                            <AvatarFallback>{user.name[0]}</AvatarFallback>
+                            <AvatarFallback>{userCon.name[0]}</AvatarFallback>
                         </Avatar>
-                        <span>{user.name}</span>
+                        <span>{userCon.name}</span>
                     </div>
                 ))}
             </ScrollArea>
@@ -131,7 +154,7 @@ export const Mensajes = () => {
                     </Sheet>
 
                     <div className="font-semibold">
-                        {selectedUser ? selectedUser.name : "Chat"}
+                        {selectedUserCon ? selectedUserCon.name : "Chat"}
                     </div>
                 </div>
 
@@ -143,9 +166,9 @@ export const Mensajes = () => {
                 {/* CHAT AREA */}
                 <div className="flex-1 flex flex-col h-full">
                     <div className="hidden md:block p-4 border-b border-yellow-500/20 bg-black/40 backdrop-blur">
-                        {selectedUser ? (
+                        {selectedUserCon ? (
                             <div className="font-semibold text-yellow-300">
-                                Chat con {selectedUser.name}
+                                Chat con {selectedUserCon.name}
                             </div>
                         ) : (
                             <div className="text-yellow-500/60">Selecciona un usuario</div>
@@ -154,10 +177,10 @@ export const Mensajes = () => {
 
                     <ScrollArea className="flex-1 p-4">
                         <div className="space-y-3">
-                            {filteredMessages.map((msg) => (
+                            {messages.map((msg) => (
                                 <div
                                     key={msg.id}
-                                    className={`max-w-xs px-4 py-2 rounded-xl text-sm shadow-md ${msg.from === currentUserId
+                                    className={`max-w-xs px-4 py-2 rounded-xl text-sm shadow-md ${msg.from === user?.nombre
                                         ? "ml-auto bg-yellow-500 text-black"
                                         : "bg-yellow-500/10 border border-yellow-500/20 text-yellow-200"
                                         }`}
