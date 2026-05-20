@@ -11,6 +11,7 @@ import { userContext } from "@/context/userContext";
 import { Navigate } from "react-router";
 import { GetMisConversaciones } from "@/actions/GetMisConversaciones";
 import { GetMensajesConversacion } from "@/actions/GetMensajesConversacion";
+import { PostEnviarMensaje } from "@/actions/PostEnviarMensaje";
 
 type UserConversacion = {
     id: number;
@@ -73,30 +74,27 @@ export const Mensajes = () => {
 
     }, [selectedUserCon])
 
-    const currentUserId = user?.id.toString();
-
-    const filteredMessages = useMemo(() => {
-        // if (!selectedUserCon) return [];
-        // return messages.filter(
-        //     (m) =>
-        //         (m.from === currentUserId && m.to === selectedUserCon.id) ||
-        //         (m.from === selectedUserCon.id && m.to === currentUserId)
-        // );
-    }, [messages, selectedUserCon]);
-
     const sendMessage = () => {
-        // if (!selectedUserCon || !text.trim()) return;
 
-        // const newMsg: Message = {
-        //     id: crypto.randomUUID(),
-        //     from: currentUserId,
-        //     to: selectedUserCon.id,
-        //     text,
-        //     timestamp: Date.now(),
-        // };
+        PostEnviarMensaje({ mensaje: text, idConversacion: selectedUserCon?.idConversacion ?? 0, token: token ?? "" })
+            .then((response) => {
+                setMessages((previos): Message[] => {
+                    return [
+                        ...previos,
+                        {
+                            id: response.mensajeData.id,
+                            from: user?.nombre ?? "",
+                            to: selectedUserCon?.name ?? "",
+                            text: text,
+                            timestamp: 0
+                        }
+                    ]
+                });
+                setText("");
+            }).catch(() => {
+                setText("");
+            });
 
-        // setMessages((prev) => [...prev, newMsg]);
-        // setText("");
     };
 
     const Sidebar = () => (
