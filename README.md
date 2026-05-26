@@ -182,32 +182,6 @@ B->>F: Respuesta protegida
 
 ---
 
-## 🧾 Facturación
-
-- Creación de facturas
-- Visualización
-- Historial
-- Generación de PDF
-
----
-
-## 📦 Productos
-
-- Alta de productos
-- Edición
-- Eliminación
-- Consulta
-
----
-
-## 🧑‍💼 Clientes
-
-- Registro de clientes
-- Edición de información
-- Historial de compras
-
----
-
 # 🔄 Comunicación con Backend
 
 El frontend consume una API REST desarrollada en Laravel.
@@ -254,19 +228,6 @@ El sistema implementa:
 - Manejo de estados de carga
 - Alertas y notificaciones
 
----
-
-# 📈 Flujo General del Sistema
-
-```mermaid
-flowchart LR
-
-A[Login] --> B[Dashboard]
-B --> C[Clientes]
-B --> D[Productos]
-B --> E[Facturación]
-E --> F[Generar Factura]
-```
 
 ---
 
